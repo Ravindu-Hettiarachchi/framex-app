@@ -36,16 +36,22 @@ export default function HomeScreen() {
           transform: [{ translateY: slideAnim }],
         }}
       >
-        <Text
-          style={{
-            color: "#F5F1E8",
-            fontSize: 32,
-            fontWeight: "700",
-            letterSpacing: 0.5,
-          }}
-        >
-          FrameX
-        </Text>
+        <View style={{ flexDirection: "row", alignItems: "center" }}>
+          <Image 
+            source={require("../../assets/images/icon.png")}
+            style={{ width: 44, height: 44, borderRadius: 10, marginRight: 12 }}
+          />
+          <Text
+            style={{
+              color: "#F5F1E8",
+              fontSize: 32,
+              fontWeight: "700",
+              letterSpacing: 0.5,
+            }}
+          >
+            FrameX
+          </Text>
+        </View>
 
         <Text
           style={{

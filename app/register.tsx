@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   Alert,
   Animated,
+  Image,
 } from "react-native";
 import { useEffect, useRef, useState } from "react";
 import { API_URL } from "../constants/Api";
@@ -118,15 +119,21 @@ export default function RegisterScreen() {
         }}
       >
         <View style={{ marginBottom: 36 }}>
-          <Text
-            style={{
-              color: "#F5F1E8",
-              fontSize: 34,
-              fontWeight: "700",
-            }}
-          >
-            Create Account
-          </Text>
+          <View style={{ flexDirection: "row", alignItems: "center" }}>
+            <Image 
+              source={require("../assets/images/icon.png")}
+              style={{ width: 44, height: 44, borderRadius: 10, marginRight: 12 }}
+            />
+            <Text
+              style={{
+                color: "#F5F1E8",
+                fontSize: 34,
+                fontWeight: "700",
+              }}
+            >
+              Create Account
+            </Text>
+          </View>
 
           <Text
             style={{

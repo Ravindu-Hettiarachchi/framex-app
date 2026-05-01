@@ -1,46 +1,114 @@
-import { View, Text, FlatList, Alert } from "react-native";
+import {
+  View,
+  Text,
+  FlatList,
+  Alert,
+  TouchableOpacity,
+  ScrollView,
+} from "react-native";
 import { useEffect, useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { API_URL } from "../../constants/Api";
+import { Ionicons } from "@expo/vector-icons";
+import { Image } from "expo-image";
+import { router } from "expo-router";
 
-type Booking = {
+type Package = {
   _id: string;
-  packageId: any;
-  userId: any;
-  date: string;
-  status: string;
+  title: string;
+  price: number;
+  description: string;
+  image?: string;
+  features?: string[];
 };
 
-export default function BookingsScreen() {
-  const [bookings, setBookings] = useState<Booking[]>([]);
+export default function PackagesScreen() {
+  const [packages, setPackages] = useState<Package[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const fetchBookings = async () => {
+  const [user, setUser] = useState<any>(null);
+
+  const fetchPackages = async () => {
     try {
-      const token = await AsyncStorage.getItem("token");
-
-      const response = await fetch(`${API_URL}/api/bookings`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
+      const response = await fetch(`${API_URL}/api/packages`);
       const data = await response.json();
 
       if (!response.ok) {
-        Alert.alert("Error", data.message || "Failed to fetch bookings");
+        Alert.alert("Error", data.message || "Failed to fetch packages");
         return;
       }
 
-      setBookings(Array.isArray(data) ? data : []);
+      setPackages(Array.isArray(data) ? data : []);
     } catch (error) {
-      console.log("Fetch bookings error:", error);
-      Alert.alert("Error", "Could not fetch bookings");
+      console.log("Fetch packages error:", error);
+      Alert.alert("Error", "Could not fetch packages");
+    } finally {
+      setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchBookings();
+    fetchPackages();
+    const loadUser = async () => {
+      const userData = await AsyncStorage.getItem("user");
+      if (userData) {
+        setUser(JSON.parse(userData));
+      }
+    };
+    loadUser();
   }, []);
+
+  const handleBookNow = (pkg: Package) => {
+    if (!user) {
+      Alert.alert("Login Required", "Please log in to book a package", [
+        { text: "Cancel", style: "cancel" },
+        { text: "Login", onPress: () => router.push("/login") }
+      ]);
+      return;
+    }
+
+    Alert.alert(
+      "Book Package",
+      `Would you like to book the ${pkg.title} package for Rs. ${pkg.price}?`,
+      [
+        { text: "Cancel", style: "cancel" },
+        { 
+          text: "Continue to Payment", 
+          onPress: async () => {
+            try {
+              const token = await AsyncStorage.getItem("token");
+              const res = await fetch(`${API_URL}/api/bookings`, {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                  Authorization: `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                  userId: user._id,
+                  packageId: pkg._id,
+                  date: new Date().toISOString(),
+                })
+              });
+              
+              const data = await res.json();
+              if (!res.ok) throw new Error(data.message || "Failed to create booking");
+
+              router.push({
+                pathname: "/payment",
+                params: {
+                  bookingId: data.booking._id,
+                  amount: pkg.price,
+                  packageTitle: pkg.title
+                }
+              });
+            } catch (error: any) {
+              Alert.alert("Error", error.message || "Could not create booking");
+            }
+          } 
+        },
+      ]
+    );
+  };
 
   return (
     <View style={{ flex: 1, backgroundColor: "#0B0B0F", paddingTop: 80 }}>
@@ -48,59 +116,113 @@ export default function BookingsScreen() {
         <Text
           style={{
             color: "#F5F1E8",
-            fontSize: 28,
+            fontSize: 32,
             fontWeight: "700",
           }}
         >
-          My Bookings
+          Our Packages
         </Text>
 
         <Text
           style={{
             color: "#A1A1AA",
-            fontSize: 14,
+            fontSize: 15,
             marginTop: 8,
+            lineHeight: 22,
           }}
         >
-          Review your reserved photography sessions.
+          Choose a premium photography package tailored to your timeless
+          moments.
         </Text>
       </View>
 
       <FlatList
-        data={bookings}
+        data={packages}
         keyExtractor={(item) => item._id}
-        contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 30 }}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 100 }}
         ListEmptyComponent={
-          <Text style={{ color: "#F5F1E8", paddingHorizontal: 24 }}>
-            No bookings found
-          </Text>
+          !loading ? (
+            <Text style={{ color: "#7C7C85", textAlign: "center", marginTop: 40 }}>
+              No packages available at the moment.
+            </Text>
+          ) : null
         }
         renderItem={({ item }) => (
           <View
             style={{
               backgroundColor: "#15151B",
-              padding: 18,
-              marginBottom: 14,
-              borderRadius: 18,
+              borderRadius: 22,
+              marginBottom: 20,
+              overflow: "hidden",
               borderWidth: 1,
               borderColor: "#23232B",
             }}
           >
-            <Text style={{ color: "#F5F1E8", fontSize: 18, fontWeight: "600" }}>
-              {item.packageId?.title || "Unknown Package"}
-            </Text>
+            {item.image && (
+              <Image
+                source={{ uri: item.image }}
+                style={{ width: "100%", height: 180 }}
+                contentFit="cover"
+              />
+            )}
 
-            <Text style={{ color: "#C6A96B", marginTop: 6, fontSize: 15 }}>
-              Rs. {item.packageId?.price || "N/A"}
-            </Text>
+            <View style={{ padding: 20 }}>
+              <View
+                style={{
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}
+              >
+                <Text
+                  style={{ color: "#F5F1E8", fontSize: 22, fontWeight: "700" }}
+                >
+                  {item.title}
+                </Text>
+                <Text
+                  style={{ color: "#C6A96B", fontSize: 18, fontWeight: "700" }}
+                >
+                  Rs. {item.price}
+                </Text>
+              </View>
 
-            <Text style={{ color: "#A1A1AA", marginTop: 8 }}>
-              {new Date(item.date).toDateString()}
-            </Text>
+              <Text
+                style={{
+                  color: "#A1A1AA",
+                  marginTop: 10,
+                  fontSize: 14,
+                  lineHeight: 20,
+                }}
+              >
+                {item.description}
+              </Text>
 
-            <Text style={{ color: "#F5F1E8", marginTop: 8 }}>
-              Status: {item.status}
-            </Text>
+              <TouchableOpacity
+                onPress={() => handleBookNow(item)}
+                style={{
+                  backgroundColor: "#C6A96B",
+                  paddingVertical: 14,
+                  borderRadius: 14,
+                  marginTop: 20,
+                  flexDirection: "row",
+                  justifyContent: "center",
+                  alignItems: "center",
+                }}
+              >
+                <Text
+                  style={{ color: "#0B0B0F", fontWeight: "700", fontSize: 16 }}
+                >
+                  Book Package
+                </Text>
+                <Ionicons
+                  name="chevron-forward"
+                  size={18}
+                  color="#0B0B0F"
+                  style={{ marginLeft: 6 }}
+                />
+              </TouchableOpacity>
+            </View>
           </View>
         )}
       />

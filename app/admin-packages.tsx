@@ -2,6 +2,8 @@ import { View, Text, FlatList, TouchableOpacity, Alert, TextInput, Image } from 
 import { useEffect, useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { API_URL } from "../constants/Api";
+import { router } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
 
 export default function AdminPackagesScreen() {
   const [packages, setPackages] = useState<any[]>([]);
@@ -93,18 +95,21 @@ export default function AdminPackagesScreen() {
   }, []);
 
   return (
-    <View style={{ flex: 1, backgroundColor: "#0B0B0F", paddingTop: 80 }}>
-      <Text
-        style={{
-          color: "#F5F1E8",
-          fontSize: 28,
-          fontWeight: "700",
-          paddingHorizontal: 24,
-          marginBottom: 20,
-        }}
-      >
-        Manage Packages
-      </Text>
+    <View style={{ flex: 1, backgroundColor: "#0B0B0F", paddingTop: 60 }}>
+      <View style={{ flexDirection: "row", alignItems: "center", paddingHorizontal: 24, marginBottom: 20 }}>
+        <TouchableOpacity onPress={() => router.back()} style={{ marginRight: 16 }}>
+          <Ionicons name="arrow-back" size={28} color="#F5F1E8" />
+        </TouchableOpacity>
+        <Text
+          style={{
+            color: "#F5F1E8",
+            fontSize: 28,
+            fontWeight: "700",
+          }}
+        >
+          Manage Packages
+        </Text>
+      </View>
 
       <View
         style={{
