@@ -1,29 +1,33 @@
 const express = require("express");
 const router = express.Router();
 
-const paymentController = require("../controllers/paymentController");
+const packageController = require("../controllers/packageController");
 const authMiddleware = require("../middleware/authMiddleware");
 
-// Customer routes
-router.post("/", authMiddleware.protect, paymentController.createPayment);
-router.get("/", authMiddleware.protect, paymentController.getPayments);
-router.get("/:id", authMiddleware.protect, paymentController.getPaymentById);
-router.put("/:id", authMiddleware.protect, paymentController.updatePayment);
-router.delete("/:id", authMiddleware.protect, paymentController.deletePayment);
+// Public routes
+router.get("/", packageController.getPackages);
+router.get("/:id", packageController.getPackageById);
 
-// Admin routes
-router.get(
-  "/admin/all",
+// Admin routes (require token and admin rights)
+router.post(
+  "/",
   authMiddleware.protect,
   authMiddleware.adminOnly,
-  paymentController.getAllPayments
+  packageController.createPackage
 );
 
 router.put(
-  "/admin/status/:id",
+  "/:id",
   authMiddleware.protect,
   authMiddleware.adminOnly,
-  paymentController.updatePaymentStatus
+  packageController.updatePackage
+);
+
+router.delete(
+  "/:id",
+  authMiddleware.protect,
+  authMiddleware.adminOnly,
+  packageController.deletePackage
 );
 
 module.exports = router;

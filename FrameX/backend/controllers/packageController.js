@@ -1,147 +1,82 @@
-const Payment = require("../models/Payment");
+const Package = require("../models/Package");
 
-const createPayment = async (req, res) => {
+const createPackage = async (req, res) => {
   try {
-    const { bookingId, amount, paymentMethod, status } = req.body || {};
+    const { title, price, description, image } = req.body;
 
-    if (!bookingId || !amount) {
+    if (!title || !price || !description) {
       return res.status(400).json({
-        message: "bookingId and amount are required",
+        message: "title, price, and description are required",
       });
     }
 
-    const payment = await Payment.create({
-      bookingId,
-      amount,
-      paymentMethod: paymentMethod || "Cash",
-      status: status || "Pending",
+    const newPackage = await Package.create({
+      title,
+      price,
+      description,
+      image: image || "",
     });
 
     res.status(201).json({
-      message: "Payment created successfully",
-      payment,
+      message: "Package created successfully",
+      package: newPackage,
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
 
-const getPayments = async (req, res) => {
+const getPackages = async (req, res) => {
   try {
-    const payments = await Payment.find().populate({
-      path: "bookingId",
-      populate: [
-        { path: "userId", select: "name email" },
-        { path: "packageId", select: "title price" },
-      ],
-    });
-
-    res.status(200).json(payments);
+    const packages = await Package.find().sort({ createdAt: -1 });
+    res.status(200).json(packages);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
 
-const getPaymentById = async (req, res) => {
+const getPackageById = async (req, res) => {
   try {
-    const payment = await Payment.findById(req.params.id).populate({
-      path: "bookingId",
-      populate: [
-        { path: "userId", select: "name email" },
-        { path: "packageId", select: "title price" },
-      ],
-    });
-
-    if (!payment) {
-      return res.status(404).json({ message: "Payment not found" });
+    const pkg = await Package.findById(req.params.id);
+    if (!pkg) {
+      return res.status(404).json({ message: "Package not found" });
     }
-
-    res.status(200).json(payment);
+    res.status(200).json(pkg);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
 
-const updatePayment = async (req, res) => {
+const updatePackage = async (req, res) => {
   try {
-    const payment = await Payment.findByIdAndUpdate(req.params.id, req.body, {
+    const pkg = await Package.findByIdAndUpdate(req.params.id, req.body, {
       new: true,
       runValidators: true,
     });
 
-    if (!payment) {
-      return res.status(404).json({ message: "Payment not found" });
+    if (!pkg) {
+      return res.status(404).json({ message: "Package not found" });
     }
 
     res.status(200).json({
-      message: "Payment updated successfully",
-      payment,
+      message: "Package updated successfully",
+      package: pkg,
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
 
-const deletePayment = async (req, res) => {
+const deletePackage = async (req, res) => {
   try {
-    const payment = await Payment.findByIdAndDelete(req.params.id);
+    const pkg = await Package.findByIdAndDelete(req.params.id);
 
-    if (!payment) {
-      return res.status(404).json({ message: "Payment not found" });
+    if (!pkg) {
+      return res.status(404).json({ message: "Package not found" });
     }
 
     res.status(200).json({
-      message: "Payment deleted successfully",
-    });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
-
-// Admin
-const getAllPayments = async (req, res) => {
-  try {
-    const payments = await Payment.find().populate({
-      path: "bookingId",
-      populate: [
-        { path: "userId", select: "name email" },
-        { path: "packageId", select: "title price" },
-      ],
-    });
-
-    res.status(200).json(payments);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
-
-const updatePaymentStatus = async (req, res) => {
-  try {
-    const { status } = req.body || {};
-
-    if (!status) {
-      return res.status(400).json({ message: "Status is required" });
-    }
-
-    const payment = await Payment.findByIdAndUpdate(
-      req.params.id,
-      { status },
-      { new: true, runValidators: true }
-    ).populate({
-      path: "bookingId",
-      populate: [
-        { path: "userId", select: "name email" },
-        { path: "packageId", select: "title price" },
-      ],
-    });
-
-    if (!payment) {
-      return res.status(404).json({ message: "Payment not found" });
-    }
-
-    res.status(200).json({
-      message: "Payment status updated successfully",
-      payment,
+      message: "Package deleted successfully",
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -149,11 +84,9 @@ const updatePaymentStatus = async (req, res) => {
 };
 
 module.exports = {
-  createPayment,
-  getPayments,
-  getPaymentById,
-  updatePayment,
-  deletePayment,
-  getAllPayments,
-  updatePaymentStatus,
+  createPackage,
+  getPackages,
+  getPackageById,
+  updatePackage,
+  deletePackage,
 };
