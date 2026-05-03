@@ -3,8 +3,9 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router } from "expo-router";
 import { useEffect, useState } from "react";
 import { Ionicons } from "@expo/vector-icons";
+import { API_URL } from "../../constants/Api";
 
-const API_BASE_URL = "https://framex-app-production.up.railway.app";
+const API_BASE_URL = API_URL;
 
 export default function ProfileScreen() {
   const [user, setUser] = useState<any>(null);

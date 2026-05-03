@@ -9,6 +9,7 @@ router.put("/forgot-password", userController.forgotPassword);
 
 router.get("/", userController.getUsers);
 router.get("/:id", userController.getUserById);
+router.put("/:id/update-password", userController.updatePassword);
 router.put("/:id", userController.updateUser);
 router.delete("/:id", userController.deleteUser);
 
