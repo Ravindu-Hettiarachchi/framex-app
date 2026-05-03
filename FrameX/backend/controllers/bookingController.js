@@ -3,7 +3,7 @@ const Booking = require("../models/Booking");
 // Customer create booking
 const createBooking = async (req, res) => {
   try {
-    const { userId, packageId, date } = req.body || {};
+    const { userId, packageId, date, time } = req.body || {};
 
     if (!userId || !packageId || !date) {
       return res.status(400).json({
@@ -15,6 +15,7 @@ const createBooking = async (req, res) => {
       userId,
       packageId,
       date,
+      time: time || "",
     });
 
     res.status(201).json({

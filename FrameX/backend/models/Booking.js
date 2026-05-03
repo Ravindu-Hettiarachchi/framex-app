@@ -13,8 +13,12 @@ const bookingSchema = new mongoose.Schema(
       required: true,
     },
     date: {
-      type: Date,
+      type: String,
       required: true,
+    },
+    time: {
+      type: String,
+      default: "",
     },
     status: {
       type: String,

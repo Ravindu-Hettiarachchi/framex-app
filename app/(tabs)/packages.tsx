@@ -2,7 +2,6 @@ import {
   View,
   Text,
   FlatList,
-  Alert,
   TouchableOpacity,
   ScrollView,
 } from "react-native";
@@ -59,55 +58,21 @@ export default function PackagesScreen() {
   }, []);
 
   const handleBookNow = (pkg: Package) => {
+    console.log("Book Package pressed:", pkg.title);
+
     if (!user) {
-      Alert.alert("Login Required", "Please log in to book a package", [
-        { text: "Cancel", style: "cancel" },
-        { text: "Login", onPress: () => router.push("/login") }
-      ]);
+      router.push("/login");
       return;
     }
 
-    Alert.alert(
-      "Book Package",
-      `Would you like to book the ${pkg.title} package for Rs. ${pkg.price}?`,
-      [
-        { text: "Cancel", style: "cancel" },
-        { 
-          text: "Continue to Payment", 
-          onPress: async () => {
-            try {
-              const token = await AsyncStorage.getItem("token");
-              const res = await fetch(`${API_URL}/api/bookings`, {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                  Authorization: `Bearer ${token}`
-                },
-                body: JSON.stringify({
-                  userId: user._id,
-                  packageId: pkg._id,
-                  date: new Date().toISOString(),
-                })
-              });
-              
-              const data = await res.json();
-              if (!res.ok) throw new Error(data.message || "Failed to create booking");
-
-              router.push({
-                pathname: "/payment",
-                params: {
-                  bookingId: data.booking._id,
-                  amount: pkg.price,
-                  packageTitle: pkg.title
-                }
-              });
-            } catch (error: any) {
-              Alert.alert("Error", error.message || "Could not create booking");
-            }
-          } 
-        },
-      ]
-    );
+    router.push({
+      pathname: "/(tabs)/bookings",
+      params: {
+        packageId: pkg._id,
+        title: pkg.title,
+        price: String(pkg.price),
+      },
+    });
   };
 
   return (
