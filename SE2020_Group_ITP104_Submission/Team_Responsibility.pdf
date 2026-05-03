@@ -1,0 +1,11 @@
+# Team Responsibility Matrix - ITP 104
+
+| Member | Primary Responsibilities |
+| :--- | :--- |
+| **Hettiarachchi M.H.** | Project Lead, Mobile UI Development, Navigation Architecture, Branding & Logo Design, Backend Integration. |
+| **Aadhil A.A.M.** | Backend API Development, Database Schema Design, Payment Gateway Logic, Admin Panel Implementation. |
+| **Gunathilaka D.M.T.B** | Documentation, System Architecture Diagrams, Quality Assurance Testing. |
+| **Madhushan L.B.S** | Problem Statement analysis, Database Schema Diagrams, Requirements gathering. |
+
+### Summary of Major Contributions:
+*   **Hettiarachchi & Aadhil**: Co-developed the core full-stack functionality, including the real-time booking system, the payment verification flow, and the production deployment to Railway and GitHub.

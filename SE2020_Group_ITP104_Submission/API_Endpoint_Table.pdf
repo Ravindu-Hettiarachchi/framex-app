@@ -1,0 +1,22 @@
+# FrameX API Endpoint Table
+
+| Feature | Method | Endpoint | Description |
+| :--- | :--- | :--- | :--- |
+| **Authentication** | POST | `/api/auth/register` | Register new user |
+| | POST | `/api/auth/login` | User/Admin login |
+| **Account Management** | PUT | `/api/users/:id` | Edit Account details |
+| | PUT | `/api/users/:id/update-password` | Change current password |
+| | DELETE | `/api/users/:id` | Delete User Account |
+| **Packages** | GET | `/api/packages` | Fetch all photography packages |
+| | POST | `/api/packages` | Create new package (Admin) |
+| | DELETE | `/api/packages/:id` | Remove package (Admin) |
+| **Bookings** | POST | `/api/bookings` | Create a new session booking |
+| | GET | `/api/bookings/user/:id` | Get bookings for specific user |
+| | GET | `/api/bookings` | Get all bookings (Admin) |
+| | PUT | `/api/bookings/:id` | Update booking status |
+| **Payments** | POST | `/api/payments` | Record payment (Card/Bank) |
+| | GET | `/api/payments/user/:id` | View payment history |
+| | GET | `/api/payments` | View all payments (Admin) |
+| **Admin** | PUT | `/api/admin/update-secret` | Update admin master password |
+
+**Base URL:** `https://framex-app-production.up.railway.app`

@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"><title>CALIDI API Specification</title>
+    <style>
+        body { font-family: sans-serif; max-width: 900px; margin: 40px auto; padding: 20px; }
+        h1 { text-align: center; border-bottom: 2px solid #000; }
+        h2 { background: #f4f4f4; padding: 10px; border-left: 5px solid #333; margin-top: 30px; font-size: 1.1em; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; font-size: 0.9em; }
+        th { background-color: #000; color: #fff; text-transform: uppercase; }
+        .method { font-weight: bold; }
+    </style>
+</head>
+<body>
+    <h1>CALIDI Boutique: API Endpoint Specification</h1>
+
+    <h2>1. User Management (Member 01)</h2>
+    <table>
+        <tr><th>Method</th><th>Endpoint</th><th>Description</th></tr>
+        <tr><td class="method">POST</td><td>/api/auth/signup</td><td>User Registration</td></tr>
+        <tr><td class="method">POST</td><td>/api/auth/login</td><td>User Login (JWT)</td></tr>
+        <tr><td class="method">GET</td><td>/api/auth/me</td><td>Profile & Loyalty Info</td></tr>
+    </table>
+
+    <h2>2. Product & Inventory (Member 02)</h2>
+    <table>
+        <tr><th>Method</th><th>Endpoint</th><th>Description</th></tr>
+        <tr><td class="method">GET</td><td>/api/products</td><td>Public Catalog</td></tr>
+        <tr><td class="method">POST</td><td>/api/admin/products</td><td>Add New Product</td></tr>
+        <tr><td class="method">PUT</td><td>/api/admin/products/:id</td><td>Update Stock/Price</td></tr>
+    </table>
+
+    <h2>3. Order & Payment (Member 03)</h2>
+    <table>
+        <tr><th>Method</th><th>Endpoint</th><th>Description</th></tr>
+        <tr><td class="method">POST</td><td>/api/orders</td><td>Create New Order</td></tr>
+        <tr><td class="method">POST</td><td>/api/orders/:id/pay</td><td>Process Payment</td></tr>
+        <tr><td class="method">GET</td><td>/api/orders</td><td>User History</td></tr>
+    </table>
+
+    <h2>4. Delivery & Logistics (Member 04)</h2>
+    <table>
+        <tr><th>Method</th><th>Endpoint</th><th>Description</th></tr>
+        <tr><td class="method">GET</td><td>/api/admin/deliveries</td><td>Delivery Schedule</td></tr>
+        <tr><td class="method">POST</td><td>/api/admin/deliveries/:id/assign</td><td>Assign Rider</td></tr>
+        <tr><td class="method">PUT</td><td>/api/admin/riders/:id/approval</td><td>Approve Rider</td></tr>
+    </table>
+</body>
+</html>
