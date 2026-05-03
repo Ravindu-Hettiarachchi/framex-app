@@ -4,11 +4,11 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  Alert,
   Animated,
   Image,
 } from "react-native";
 import { useEffect, useRef, useState } from "react";
+import { Ionicons } from "@expo/vector-icons";
 import { API_URL } from "../constants/Api";
 
 export default function RegisterScreen() {
@@ -17,6 +17,8 @@ export default function RegisterScreen() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
+  const [successMsg, setSuccessMsg] = useState("");
 
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(25)).current;
@@ -41,37 +43,35 @@ export default function RegisterScreen() {
   };
 
   const handleRegister = async () => {
+    setErrorMsg("");
+    setSuccessMsg("");
+
+    if (!name.trim() || !email.trim() || !password.trim() || !confirmPassword.trim()) {
+      setErrorMsg("Please fill in all fields");
+      return;
+    }
+
+    if (name.trim().length < 3) {
+      setErrorMsg("Name must be at least 3 characters");
+      return;
+    }
+
+    if (!validateEmail(email)) {
+      setErrorMsg("Please enter a valid email address");
+      return;
+    }
+
+    if (password.length < 6) {
+      setErrorMsg("Password must be at least 6 characters");
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setErrorMsg("Passwords do not match");
+      return;
+    }
+
     try {
-      if (
-        !name.trim() ||
-        !email.trim() ||
-        !password.trim() ||
-        !confirmPassword.trim()
-      ) {
-        Alert.alert("Validation Error", "Please fill all fields");
-        return;
-      }
-
-      if (name.trim().length < 3) {
-        Alert.alert("Validation Error", "Name must be at least 3 characters");
-        return;
-      }
-
-      if (!validateEmail(email)) {
-        Alert.alert("Validation Error", "Please enter a valid email address");
-        return;
-      }
-
-      if (password.length < 6) {
-        Alert.alert("Validation Error", "Password must be at least 6 characters");
-        return;
-      }
-
-      if (password !== confirmPassword) {
-        Alert.alert("Validation Error", "Passwords do not match");
-        return;
-      }
-
       setLoading(true);
 
       const response = await fetch(`${API_URL}/api/users/register`, {
@@ -89,14 +89,14 @@ export default function RegisterScreen() {
       const data = await response.json();
 
       if (!response.ok) {
-        Alert.alert("Registration Failed", data.message || "Something went wrong");
+        setErrorMsg(data.message || "Registration failed. Please try again.");
         return;
       }
 
-      Alert.alert("Success", "Account created successfully");
-      router.replace("/login");
+      setSuccessMsg("Account created! Redirecting to login...");
+      setTimeout(() => router.replace("/login"), 1000);
     } catch (error) {
-      Alert.alert("Error", "Could not connect to server");
+      setErrorMsg("Could not connect to server. Please try again.");
       console.log(error);
     } finally {
       setLoading(false);
@@ -120,7 +120,7 @@ export default function RegisterScreen() {
       >
         <View style={{ marginBottom: 36 }}>
           <View style={{ flexDirection: "row", alignItems: "center" }}>
-            <Image 
+            <Image
               source={require("../assets/images/icon.png")}
               style={{ width: 44, height: 44, borderRadius: 10, marginRight: 12 }}
             />
@@ -156,11 +156,51 @@ export default function RegisterScreen() {
             borderColor: "#23232B",
           }}
         >
+          {/* ERROR MESSAGE */}
+          {errorMsg ? (
+            <View
+              style={{
+                backgroundColor: "#2D1515",
+                borderWidth: 1,
+                borderColor: "#EF4444",
+                borderRadius: 10,
+                padding: 12,
+                marginBottom: 14,
+                flexDirection: "row",
+                alignItems: "center",
+                gap: 8,
+              }}
+            >
+              <Ionicons name="alert-circle-outline" size={18} color="#EF4444" />
+              <Text style={{ color: "#EF4444", fontSize: 14, flex: 1 }}>{errorMsg}</Text>
+            </View>
+          ) : null}
+
+          {/* SUCCESS MESSAGE */}
+          {successMsg ? (
+            <View
+              style={{
+                backgroundColor: "#152D1A",
+                borderWidth: 1,
+                borderColor: "#22C55E",
+                borderRadius: 10,
+                padding: 12,
+                marginBottom: 14,
+                flexDirection: "row",
+                alignItems: "center",
+                gap: 8,
+              }}
+            >
+              <Ionicons name="checkmark-circle-outline" size={18} color="#22C55E" />
+              <Text style={{ color: "#22C55E", fontSize: 14, flex: 1 }}>{successMsg}</Text>
+            </View>
+          ) : null}
+
           <TextInput
             placeholder="Full Name"
             placeholderTextColor="#7C7C85"
             value={name}
-            onChangeText={setName}
+            onChangeText={(v) => { setName(v); setErrorMsg(""); }}
             style={{
               backgroundColor: "#1D1D24",
               color: "#F5F1E8",
@@ -176,7 +216,7 @@ export default function RegisterScreen() {
             placeholder="Email"
             placeholderTextColor="#7C7C85"
             value={email}
-            onChangeText={setEmail}
+            onChangeText={(v) => { setEmail(v); setErrorMsg(""); }}
             autoCapitalize="none"
             keyboardType="email-address"
             style={{
@@ -194,7 +234,7 @@ export default function RegisterScreen() {
             placeholder="Password"
             placeholderTextColor="#7C7C85"
             value={password}
-            onChangeText={setPassword}
+            onChangeText={(v) => { setPassword(v); setErrorMsg(""); }}
             secureTextEntry
             style={{
               backgroundColor: "#1D1D24",
@@ -211,7 +251,7 @@ export default function RegisterScreen() {
             placeholder="Confirm Password"
             placeholderTextColor="#7C7C85"
             value={confirmPassword}
-            onChangeText={setConfirmPassword}
+            onChangeText={(v) => { setConfirmPassword(v); setErrorMsg(""); }}
             secureTextEntry
             style={{
               backgroundColor: "#1D1D24",
