@@ -169,6 +169,7 @@ export default function BookingsScreen() {
 
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [user, setUser]         = useState<any>(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
   // ── Create form
   const [cDate, setCDate]         = useState("");
@@ -262,25 +263,24 @@ export default function BookingsScreen() {
     finally { setEBusy(false); }
   };
 
-  // ── DELETE ────────────────────────────────────────────────────────────────
-  const handleDelete = (id: string) => {
-    const doDelete = async () => {
-      try {
-        const token = await AsyncStorage.getItem("token");
-        const res = await fetch(`${API_URL}/api/bookings/${id}`, {
-          method: "DELETE",
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        if (res.ok) await fetchBookings();
-      } catch (e) { console.log("Delete error:", e); }
-    };
+  const handleDelete = async (id: string) => {
+    try {
+      const token = await AsyncStorage.getItem("token");
+      const res = await fetch(`${API_URL}/api/bookings/${id}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.ok) { setConfirmDeleteId(null); await fetchBookings(); }
+    } catch (e) { console.log("Delete error:", e); }
+  };
 
+  const onCancelPress = (id: string) => {
     if (Platform.OS === "web") {
-      if (window.confirm("Cancel this booking?")) doDelete();
+      setConfirmDeleteId(id);
     } else {
       Alert.alert("Cancel Booking", "Are you sure you want to cancel this booking?", [
         { text: "No", style: "cancel" },
-        { text: "Yes, Cancel", style: "destructive", onPress: doDelete },
+        { text: "Yes, Cancel", style: "destructive", onPress: () => handleDelete(id) },
       ]);
     }
   };
@@ -367,26 +367,48 @@ export default function BookingsScreen() {
 
           {/* Edit + Cancel buttons (Pending only) */}
           {item.status === "Pending" && (
-            <View style={{ flexDirection: "row", gap: 10 }}>
-              <TouchableOpacity
-                onPress={() => openEdit(item)}
-                style={{ flex: 1, flexDirection: "row", justifyContent: "center", alignItems: "center",
-                  gap: 6, backgroundColor: "#1C1C24", paddingVertical: 10, borderRadius: 12,
-                  borderWidth: 1, borderColor: "#C6A96B60" }}
-              >
-                <Ionicons name="create-outline" size={16} color="#C6A96B" />
-                <Text style={{ color: "#C6A96B", fontWeight: "600", fontSize: 14 }}>Edit</Text>
-              </TouchableOpacity>
+            <View>
+              {confirmDeleteId === item._id ? (
+                // Inline confirm on web
+                <View style={{ backgroundColor: "#2D1515", borderRadius: 12, padding: 14,
+                  borderWidth: 1, borderColor: "#EF444460", marginTop: 4 }}>
+                  <Text style={{ color: "#F5F1E8", fontSize: 14, marginBottom: 12, textAlign: "center" }}>
+                    Cancel this booking?
+                  </Text>
+                  <View style={{ flexDirection: "row", gap: 10 }}>
+                    <TouchableOpacity
+                      onPress={() => setConfirmDeleteId(null)}
+                      style={{ flex: 1, padding: 10, borderRadius: 10, backgroundColor: "#1C1C24", alignItems: "center" }}>
+                      <Text style={{ color: "#A1A1AA", fontWeight: "600" }}>Keep</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      onPress={() => handleDelete(item._id)}
+                      style={{ flex: 1, padding: 10, borderRadius: 10, backgroundColor: "#EF4444", alignItems: "center" }}>
+                      <Text style={{ color: "#fff", fontWeight: "700" }}>Yes, Cancel</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              ) : (
+                <View style={{ flexDirection: "row", gap: 10, marginTop: 4 }}>
+                  <TouchableOpacity
+                    onPress={() => openEdit(item)}
+                    style={{ flex: 1, flexDirection: "row", justifyContent: "center", alignItems: "center",
+                      gap: 6, backgroundColor: "#1C1C24", paddingVertical: 10, borderRadius: 12,
+                      borderWidth: 1, borderColor: "#C6A96B60" }}>
+                    <Ionicons name="create-outline" size={16} color="#C6A96B" />
+                    <Text style={{ color: "#C6A96B", fontWeight: "600", fontSize: 14 }}>Edit</Text>
+                  </TouchableOpacity>
 
-              <TouchableOpacity
-                onPress={() => handleDelete(item._id)}
-                style={{ flex: 1, flexDirection: "row", justifyContent: "center", alignItems: "center",
-                  gap: 6, backgroundColor: "#1C1C24", paddingVertical: 10, borderRadius: 12,
-                  borderWidth: 1, borderColor: "#EF444460" }}
-              >
-                <Ionicons name="close-circle-outline" size={16} color="#EF4444" />
-                <Text style={{ color: "#EF4444", fontWeight: "600", fontSize: 14 }}>Cancel</Text>
-              </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={() => onCancelPress(item._id)}
+                    style={{ flex: 1, flexDirection: "row", justifyContent: "center", alignItems: "center",
+                      gap: 6, backgroundColor: "#1C1C24", paddingVertical: 10, borderRadius: 12,
+                      borderWidth: 1, borderColor: "#EF444460" }}>
+                    <Ionicons name="close-circle-outline" size={16} color="#EF4444" />
+                    <Text style={{ color: "#EF4444", fontWeight: "600", fontSize: 14 }}>Cancel</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
             </View>
           )}
         </View>
