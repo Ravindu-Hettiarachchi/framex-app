@@ -44,3 +44,6 @@ yarn-error.*
 .vscode/
 
 app-example
+
+# huge duplicate folder
+framex-app/
