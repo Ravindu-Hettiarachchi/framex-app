@@ -226,22 +226,15 @@ export default function AdminBookingsScreen() {
               {/* Approve / Reject buttons */}
               <View style={{ flexDirection: "row", marginTop: 16, gap: 10 }}>
                 <TouchableOpacity
-                  onPress={() => {
-                    if (!item.isPaid) {
-                      setError("Cannot approve a booking without payment.");
-                      return;
-                    }
-                    updateStatus(item._id, "Approved");
-                  }}
+                  onPress={() => updateStatus(item._id, "Approved")}
                   style={{ 
                     flex: 1, 
-                    backgroundColor: item.isPaid ? "#C6A96B" : "#2A2A33", 
+                    backgroundColor: "#C6A96B", 
                     paddingVertical: 12, 
-                    borderRadius: 12,
-                    opacity: item.isPaid ? 1 : 0.6
+                    borderRadius: 12 
                   }}
                 >
-                  <Text style={{ color: item.isPaid ? "#0B0B0F" : "#7C7C85", textAlign: "center", fontWeight: "700" }}>
+                  <Text style={{ color: "#0B0B0F", textAlign: "center", fontWeight: "700" }}>
                     Approve
                   </Text>
                 </TouchableOpacity>

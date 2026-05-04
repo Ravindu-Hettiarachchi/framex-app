@@ -23,6 +23,7 @@ type Booking = {
   date: string;
   time?: string;
   status: string;
+  isPaid?: boolean;
 };
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -228,7 +229,10 @@ export default function BookingsScreen() {
       setCSuccess("Booking Created! ✓");
       setCDate(""); setCTime("");
       await fetchBookings();
-      setTimeout(() => { setCSuccess(""); router.setParams({ packageId: "", title: "", price: "" }); }, 2000);
+      setTimeout(() => { 
+        setCSuccess(""); 
+        router.setParams({ packageId: "", title: "", price: "" }); 
+      }, 2000);
     } catch (e) { setCErr("Network error. Please try again."); }
     finally { setCBusy(false); }
   };
@@ -408,8 +412,36 @@ export default function BookingsScreen() {
                     <Text style={{ color: "#EF4444", fontWeight: "600", fontSize: 14 }}>Cancel</Text>
                   </TouchableOpacity>
                 </View>
-              )}
-            </View>
+                
+                {/* Pay Now Button */}
+                {!item.isPaid && (
+                  <TouchableOpacity
+                    onPress={() => router.push({
+                      pathname: "/payment",
+                      params: {
+                        bookingId: item._id,
+                        amount: String(item.packageId?.price || 0),
+                        packageTitle: item.packageId?.title || "Package"
+                      }
+                    })}
+                    style={{ 
+                      marginTop: 10, 
+                      backgroundColor: "#C6A96B", 
+                      paddingVertical: 12, 
+                      borderRadius: 12,
+                      flexDirection: "row",
+                      justifyContent: "center",
+                      alignItems: "center",
+                      gap: 8
+                    }}
+                  >
+                    <Ionicons name="card-outline" size={18} color="#0B0B0F" />
+                    <Text style={{ color: "#0B0B0F", fontWeight: "700", fontSize: 15 }}>
+                      Pay Now
+                    </Text>
+                  </TouchableOpacity>
+                )}
+              </View>
           )}
         </View>
       ))}
