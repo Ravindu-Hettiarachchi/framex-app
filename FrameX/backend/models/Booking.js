@@ -20,6 +20,18 @@ const bookingSchema = new mongoose.Schema(
       type: String,
       default: "",
     },
+    customerName: {
+      type: String,
+      default: "",
+    },
+    phone: {
+      type: String,
+      default: "",
+    },
+    shootLocation: {
+      type: String,
+      default: "",
+    },
     status: {
       type: String,
       enum: ["Pending", "Approved", "Rejected"],

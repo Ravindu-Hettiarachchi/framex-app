@@ -44,9 +44,19 @@ const isPast = (d: Date) => {
   return check < today;
 };
 
-const validate = (date: string, time: string, setErr: (s: string) => void): boolean => {
+const validate = (
+  date: string, time: string,
+  name: string, phone: string, location: string,
+  setErr: (s: string) => void
+): boolean => {
   setErr("");
-  if (!date.trim()) { setErr("Please select a date"); return false; }
+  if (!name.trim())     { setErr("Please enter your name"); return false; }
+  if (!phone.trim())    { setErr("Please enter your phone number"); return false; }
+  if (!/^\d{7,15}$/.test(phone.replace(/[\s+\-()]/g, ""))) {
+    setErr("Enter a valid phone number"); return false;
+  }
+  if (!location.trim()) { setErr("Please enter shoot location"); return false; }
+  if (!date.trim())     { setErr("Please select a date"); return false; }
   if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) { setErr("Date must be YYYY-MM-DD"); return false; }
   const p = new Date(date);
   if (isNaN(p.getTime())) { setErr("Invalid date"); return false; }
@@ -176,6 +186,9 @@ export default function BookingsScreen() {
   // ── Create form
   const [cDate, setCDate]         = useState("");
   const [cTime, setCTime]         = useState("");
+  const [cName, setCName]         = useState("");
+  const [cPhone, setCPhone]       = useState("");
+  const [cLocation, setCLocation] = useState("");
   const [cErr, setCErr]           = useState("");
   const [cSuccess, setCSuccess]   = useState("");
   const [cBusy, setCBusy]         = useState(false);
@@ -228,7 +241,7 @@ export default function BookingsScreen() {
   const handleCreate = async () => {
     console.log("Create booking pressed — pkg:", incomingPackageId);
     setCSuccess("");
-    if (!validate(cDate, cTime, setCErr)) return;
+    if (!validate(cDate, cTime, cName, cPhone, cLocation, setCErr)) return;
     if (!user) { setCErr("You must be logged in"); return; }
 
     try {
@@ -237,7 +250,15 @@ export default function BookingsScreen() {
       const res = await fetch(`${API_URL}/api/bookings`, {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ userId: user._id, packageId: incomingPackageId, date: cDate, time: cTime }),
+        body: JSON.stringify({
+          userId: user._id,
+          packageId: incomingPackageId,
+          date: cDate,
+          time: cTime,
+          customerName: cName,
+          phone: cPhone,
+          shootLocation: cLocation,
+        }),
       });
       const data = await res.json();
       console.log("Create response:", data);
@@ -246,11 +267,11 @@ export default function BookingsScreen() {
       if (Platform.OS !== "web") Alert.alert("Success", "Booking created. Please complete payment.");
       setCSuccess("Booking Created! Redirecting to payment...");
       const bId = data.booking._id;
-      setCDate(""); setCTime("");
+      setCDate(""); setCTime(""); setCName(""); setCPhone(""); setCLocation("");
       await fetchBookings();
-      
-      setTimeout(() => { 
-        setCSuccess(""); 
+
+      setTimeout(() => {
+        setCSuccess("");
         router.setParams({ packageId: "", title: "", price: "" });
         router.push({
           pathname: "/payment",
@@ -370,6 +391,31 @@ export default function BookingsScreen() {
           {cErr     ? <Banner text={cErr}     type="error"   /> : null}
           {cSuccess ? <Banner text={cSuccess} type="success" /> : null}
 
+          {/* Customer Name */}
+          <Text style={label}>Full Name</Text>
+          <TextInput
+            placeholder="e.g. John Silva" placeholderTextColor="#7C7C85"
+            value={cName} onChangeText={v => { setCName(v); setCErr(""); }}
+            style={input}
+          />
+
+          {/* Phone Number */}
+          <Text style={label}>Phone Number</Text>
+          <TextInput
+            placeholder="e.g. 0771234567" placeholderTextColor="#7C7C85"
+            value={cPhone} onChangeText={v => { setCPhone(v); setCErr(""); }}
+            keyboardType="phone-pad" maxLength={15}
+            style={input}
+          />
+
+          {/* Shoot Location */}
+          <Text style={label}>Shoot Location</Text>
+          <TextInput
+            placeholder="e.g. Colombo, Galle Face" placeholderTextColor="#7C7C85"
+            value={cLocation} onChangeText={v => { setCLocation(v); setCErr(""); }}
+            style={input}
+          />
+
           <DateTimeForm date={cDate} setDate={setCDate} time={cTime} setTime={setCTime} setErr={setCErr} />
 
           <TouchableOpacity onPress={handleCreate} disabled={cBusy} style={[btn, { marginTop: 6 }]}>
@@ -410,10 +456,30 @@ export default function BookingsScreen() {
             <Ionicons name="calendar-outline" size={14} color="#A1A1AA" />
             <Text style={{ color: "#A1A1AA" }}>{item.date || "—"}</Text>
           </View>
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginBottom: 14 }}>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginBottom: 4 }}>
             <Ionicons name="time-outline" size={14} color="#A1A1AA" />
             <Text style={{ color: "#A1A1AA" }}>{item.time || "—"}</Text>
           </View>
+          {(item as any).customerName ? (
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginBottom: 4 }}>
+              <Ionicons name="person-outline" size={14} color="#A1A1AA" />
+              <Text style={{ color: "#A1A1AA" }}>{(item as any).customerName}</Text>
+            </View>
+          ) : null}
+          {(item as any).phone ? (
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginBottom: 4 }}>
+              <Ionicons name="call-outline" size={14} color="#A1A1AA" />
+              <Text style={{ color: "#A1A1AA" }}>{(item as any).phone}</Text>
+            </View>
+          ) : null}
+          {(item as any).shootLocation ? (
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginBottom: 14 }}>
+              <Ionicons name="location-outline" size={14} color="#A1A1AA" />
+              <Text style={{ color: "#A1A1AA" }}>{(item as any).shootLocation}</Text>
+            </View>
+          ) : (
+            <View style={{ marginBottom: 14 }} />
+          )}
 
           {/* Edit + Cancel buttons (Pending only) */}
           {item.status === "Pending" && (
