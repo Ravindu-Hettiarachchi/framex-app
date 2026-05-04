@@ -16,6 +16,24 @@ export default function PaymentScreen() {
   const [cardNumber, setCardNumber] = useState("");
   const [expiry, setExpiry] = useState("");
   const [cvv, setCvv] = useState("");
+  const [cardHolder, setCardHolder] = useState("");
+
+  const handleCardNumberChange = (text: string) => {
+    // Remove all non-digits
+    const cleaned = text.replace(/\D/g, "");
+    // Split into chunks of 4 and join with space
+    const formatted = cleaned.replace(/(.{4})/g, "$1 ").trim();
+    setCardNumber(formatted);
+  };
+
+  const handleExpiryChange = (text: string) => {
+    // Remove all non-digits
+    let cleaned = text.replace(/\D/g, "");
+    if (cleaned.length >= 3) {
+      cleaned = `${cleaned.slice(0, 2)}/${cleaned.slice(2, 4)}`;
+    }
+    setExpiry(cleaned);
+  };
 
   const pickImage = async () => {
     let result = await ImagePicker.launchImageLibraryAsync({
@@ -37,6 +55,10 @@ export default function PaymentScreen() {
       const expiryRegex = /^(0[1-9]|1[0-2])\/?([0-9]{2})$/;
       const cvvRegex = /^[0-9]{3}$/;
 
+      if (!cardHolder.trim()) {
+        Alert.alert("Validation", "Please enter the card holder's name.");
+        return;
+      }
       if (!cardRegex.test(cleanCard)) {
         Alert.alert("Validation", "Please enter a valid 16-digit card number.");
         return;
@@ -191,12 +213,20 @@ export default function PaymentScreen() {
             </Text>
 
             <TextInput
+              placeholder="Card Holder Name"
+              placeholderTextColor="#7C7C85"
+              value={cardHolder}
+              onChangeText={setCardHolder}
+              style={{ backgroundColor: "#1D1D24", color: "#F5F1E8", padding: 16, borderRadius: 12, marginBottom: 12 }}
+            />
+
+            <TextInput
               placeholder="Card Number"
               placeholderTextColor="#7C7C85"
               value={cardNumber}
-              onChangeText={setCardNumber}
+              onChangeText={handleCardNumberChange}
               keyboardType="numeric"
-              maxLength={16}
+              maxLength={19} // 16 digits + 3 spaces
               style={{ backgroundColor: "#1D1D24", color: "#F5F1E8", padding: 16, borderRadius: 12, marginBottom: 12 }}
             />
             
@@ -205,7 +235,8 @@ export default function PaymentScreen() {
                 placeholder="MM/YY"
                 placeholderTextColor="#7C7C85"
                 value={expiry}
-                onChangeText={setExpiry}
+                onChangeText={handleExpiryChange}
+                keyboardType="numeric"
                 maxLength={5}
                 style={{ flex: 1, backgroundColor: "#1D1D24", color: "#F5F1E8", padding: 16, borderRadius: 12 }}
               />
