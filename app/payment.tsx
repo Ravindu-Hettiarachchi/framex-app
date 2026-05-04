@@ -1,24 +1,43 @@
-import { View, Text, TouchableOpacity, TextInput, Alert, ScrollView } from "react-native";
+import { View, Text, TouchableOpacity, TextInput, Alert, ScrollView, Image } from "react-native";
 import { useState } from "react";
 import { router, useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { API_URL } from "../constants/Api";
+import * as ImagePicker from "expo-image-picker";
 
 export default function PaymentScreen() {
   const { bookingId, amount, packageTitle } = useLocalSearchParams();
   const [method, setMethod] = useState<"card" | "bank">("card");
   const [loading, setLoading] = useState(false);
+  const [receipt, setReceipt] = useState<ImagePicker.ImagePickerAsset | null>(null);
 
   // Card Dummy State
   const [cardNumber, setCardNumber] = useState("");
   const [expiry, setExpiry] = useState("");
   const [cvv, setCvv] = useState("");
 
+  const pickImage = async () => {
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      allowsEditing: true,
+      quality: 0.8,
+    });
+
+    if (!result.canceled) {
+      setReceipt(result.assets[0]);
+    }
+  };
+
   const handlePayment = async () => {
     if (method === "card") {
       if (!cardNumber || !expiry || !cvv) {
         Alert.alert("Validation", "Please fill out all card details (Demo).");
+        return;
+      }
+    } else {
+      if (!receipt) {
+        Alert.alert("Validation", "Please upload the bank transfer receipt.");
         return;
       }
     }
@@ -28,20 +47,31 @@ export default function PaymentScreen() {
     try {
       const token = await AsyncStorage.getItem("token");
       
-      const payload = {
-        bookingId,
-        amount: Number(amount),
-        paymentMethod: method === "card" ? "Card" : "Bank Transfer",
-        status: method === "card" ? "Paid" : "Pending"
-      };
+      const formData = new FormData();
+      formData.append("bookingId", bookingId as string);
+      formData.append("amount", amount as string);
+      formData.append("paymentMethod", method === "card" ? "Card" : "Bank Transfer");
+      formData.append("status", method === "card" ? "Paid" : "Pending");
+
+      if (receipt) {
+        const uriParts = receipt.uri.split('.');
+        const fileType = uriParts[uriParts.length - 1];
+        
+        // @ts-ignore
+        formData.append("receiptImage", {
+          uri: receipt.uri,
+          name: `receipt.${fileType}`,
+          type: `image/${fileType}`,
+        });
+      }
 
       const res = await fetch(`${API_URL}/api/payments`, {
         method: "POST",
         headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`
+          Authorization: `Bearer ${token}`,
+          // Note: Don't set 'Content-Type' header when using FormData
         },
-        body: JSON.stringify(payload)
+        body: formData
       });
 
       const data = await res.json();
@@ -178,14 +208,48 @@ export default function PaymentScreen() {
             <Text style={{ color: "#F5F1E8", fontSize: 16, fontWeight: "600", marginBottom: 12 }}>
               Bank Account Details
             </Text>
-            <Text style={{ color: "#A1A1AA", fontSize: 15, marginBottom: 6 }}>Bank Name: <Text style={{ color: "#F5F1E8" }}>Commercial Bank</Text></Text>
-            <Text style={{ color: "#A1A1AA", fontSize: 15, marginBottom: 6 }}>Account Name: <Text style={{ color: "#F5F1E8" }}>FrameX Photography</Text></Text>
-            <Text style={{ color: "#A1A1AA", fontSize: 15, marginBottom: 6 }}>Account No: <Text style={{ color: "#F5F1E8" }}>1234567890</Text></Text>
-            <Text style={{ color: "#A1A1AA", fontSize: 15, marginBottom: 16 }}>Branch: <Text style={{ color: "#F5F1E8" }}>Colombo</Text></Text>
+            <View style={{ marginBottom: 16 }}>
+              <Text style={{ color: "#A1A1AA", fontSize: 15, marginBottom: 6 }}>Bank Name: <Text style={{ color: "#F5F1E8" }}>Commercial Bank</Text></Text>
+              <Text style={{ color: "#A1A1AA", fontSize: 15, marginBottom: 6 }}>Account Name: <Text style={{ color: "#F5F1E8" }}>FrameX Photography</Text></Text>
+              <Text style={{ color: "#A1A1AA", fontSize: 15, marginBottom: 6 }}>Account No: <Text style={{ color: "#F5F1E8" }}>1234567890</Text></Text>
+              <Text style={{ color: "#A1A1AA", fontSize: 15 }}>Branch: <Text style={{ color: "#F5F1E8" }}>Colombo</Text></Text>
+            </View>
             
-            <Text style={{ color: "#C6A96B", fontSize: 13, lineHeight: 20 }}>
-              Please transfer Rs. {amount} to the account above and click "I have Transferred". An admin will verify and approve your booking.
-            </Text>
+            <View style={{ borderTopWidth: 1, borderTopColor: "#23232B", paddingTop: 16 }}>
+              <Text style={{ color: "#F5F1E8", fontSize: 16, fontWeight: "600", marginBottom: 12 }}>
+                Upload Payment Slip
+              </Text>
+              
+              <TouchableOpacity
+                onPress={pickImage}
+                style={{
+                  backgroundColor: "#1D1D24",
+                  height: 180,
+                  borderRadius: 14,
+                  borderWidth: 1,
+                  borderColor: "#23232B",
+                  borderStyle: "dashed",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  overflow: "hidden"
+                }}
+              >
+                {receipt ? (
+                  <Image source={{ uri: receipt.uri }} style={{ width: "100%", height: "100%" }} resizeMode="contain" />
+                ) : (
+                  <>
+                    <Ionicons name="cloud-upload-outline" size={40} color="#7C7C85" />
+                    <Text style={{ color: "#7C7C85", marginTop: 10 }}>Tap to upload bank slip</Text>
+                  </>
+                )}
+              </TouchableOpacity>
+              
+              {receipt && (
+                <TouchableOpacity onPress={() => setReceipt(null)} style={{ marginTop: 10 }}>
+                  <Text style={{ color: "#EF4444", textAlign: "center" }}>Remove Image</Text>
+                </TouchableOpacity>
+              )}
+            </View>
           </View>
         )}
 
@@ -202,7 +266,7 @@ export default function PaymentScreen() {
           }}
         >
           <Text style={{ color: "#0B0B0F", fontSize: 16, fontWeight: "700" }}>
-            {loading ? "Processing..." : method === "card" ? "Pay Now" : "I have Transferred"}
+            {loading ? "Processing..." : method === "card" ? "Pay Now" : "Submit Receipt"}
           </Text>
         </TouchableOpacity>
 

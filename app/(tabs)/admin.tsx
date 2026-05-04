@@ -79,6 +79,7 @@ export default function AdminScreen() {
           borderWidth: 1,
           padding: 18,
           borderRadius: 18,
+          marginBottom: 14,
         }}
       >
         <Text style={{ color: "#F5F1E8", fontSize: 18, fontWeight: "600" }}>
@@ -86,6 +87,24 @@ export default function AdminScreen() {
         </Text>
         <Text style={{ color: "#A1A1AA", marginTop: 6 }}>
           Add, edit, and delete packages
+        </Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        onPress={() => router.push("/admin-users")}
+        style={{
+          backgroundColor: "#15151B",
+          borderColor: "#23232B",
+          borderWidth: 1,
+          padding: 18,
+          borderRadius: 18,
+        }}
+      >
+        <Text style={{ color: "#F5F1E8", fontSize: 18, fontWeight: "600" }}>
+          Manage Users
+        </Text>
+        <Text style={{ color: "#A1A1AA", marginTop: 6 }}>
+          Update roles or delete user accounts
         </Text>
       </TouchableOpacity>
     </View>

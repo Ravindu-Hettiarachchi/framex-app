@@ -1,4 +1,4 @@
-import { View, Text, FlatList, TouchableOpacity, Alert } from "react-native";
+import { View, Text, FlatList, TouchableOpacity, Alert, Image, TextInput } from "react-native";
 import { useEffect, useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { API_URL } from "../constants/Api";
@@ -7,6 +7,7 @@ import { Ionicons } from "@expo/vector-icons";
 
 export default function AdminPaymentsScreen() {
   const [payments, setPayments] = useState<any[]>([]);
+  const [refNumbers, setRefNumbers] = useState<{[key: string]: string}>({});
 
   const fetchPayments = async () => {
     try {
@@ -35,6 +36,12 @@ export default function AdminPaymentsScreen() {
   const updateStatus = async (id: string, status: string) => {
     try {
       const token = await AsyncStorage.getItem("token");
+      const referenceNumber = refNumbers[id];
+
+      if (status === "Paid" && !referenceNumber && payments.find(p => p._id === id)?.paymentMethod === "Bank Transfer") {
+        Alert.alert("Error", "Please enter a reference number before confirming.");
+        return;
+      }
 
       const res = await fetch(`${API_URL}/api/payments/admin/status/${id}`, {
         method: "PUT",
@@ -42,7 +49,7 @@ export default function AdminPaymentsScreen() {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ status }),
+        body: JSON.stringify({ status, referenceNumber }),
       });
 
       const data = await res.json();
@@ -57,32 +64,6 @@ export default function AdminPaymentsScreen() {
     } catch (error) {
       console.log(error);
       Alert.alert("Error", "Could not update payment");
-    }
-  };
-
-  const deletePayment = async (id: string) => {
-    try {
-      const token = await AsyncStorage.getItem("token");
-
-      const res = await fetch(`${API_URL}/api/payments/${id}`, {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        Alert.alert("Error", data.message || "Delete failed");
-        return;
-      }
-
-      Alert.alert("Success", "Payment deleted");
-      fetchPayments();
-    } catch (error) {
-      console.log(error);
-      Alert.alert("Error", "Could not delete payment");
     }
   };
 
@@ -122,69 +103,105 @@ export default function AdminPaymentsScreen() {
               marginBottom: 14,
             }}
           >
-            <Text style={{ color: "#F5F1E8", fontSize: 17, fontWeight: "600" }}>
-              {item.bookingId?.userId?.name || "User"}
-            </Text>
-
-            <Text style={{ color: "#A1A1AA", marginTop: 4 }}>
-              {item.bookingId?.packageId?.title || "Package"}
-            </Text>
-
-            <Text style={{ color: "#C6A96B", marginTop: 10, fontSize: 16 }}>
-              Rs. {item.amount}
-            </Text>
-
-            <Text style={{ color: "#A1A1AA", marginTop: 6 }}>
-              Method: {item.paymentMethod}
-            </Text>
-
-            <Text style={{ color: "#F5F1E8", marginTop: 6 }}>
-              Status: {item.status}
-            </Text>
-
-            <View style={{ flexDirection: "row", marginTop: 16, gap: 10 }}>
-              <TouchableOpacity
-                onPress={() => updateStatus(item._id, "Paid")}
-                style={{
-                  flex: 1,
-                  backgroundColor: "#C6A96B",
-                  paddingVertical: 12,
-                  borderRadius: 12,
-                }}
-              >
-                <Text style={{ color: "#0B0B0F", textAlign: "center", fontWeight: "600" }}>
-                  Mark Paid
+            <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+              <View>
+                <Text style={{ color: "#F5F1E8", fontSize: 17, fontWeight: "600" }}>
+                  {item.bookingId?.userId?.name || "User"}
                 </Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                onPress={() => updateStatus(item._id, "Failed")}
-                style={{
-                  flex: 1,
-                  backgroundColor: "#7A1F1F",
-                  paddingVertical: 12,
-                  borderRadius: 12,
-                }}
-              >
-                <Text style={{ color: "#F5F1E8", textAlign: "center", fontWeight: "600" }}>
-                  Mark Failed
+                <Text style={{ color: "#A1A1AA", marginTop: 4 }}>
+                  {item.bookingId?.packageId?.title || "Package"}
                 </Text>
-              </TouchableOpacity>
+              </View>
+              <View style={{ alignItems: "flex-end" }}>
+                <Text style={{ color: "#C6A96B", fontSize: 16, fontWeight: "700" }}>
+                  Rs. {item.amount}
+                </Text>
+                <Text style={{ color: item.status === "Paid" ? "#22C55E" : "#EAB308", fontSize: 12, marginTop: 4 }}>
+                  {item.status}
+                </Text>
+              </View>
             </View>
 
-            <TouchableOpacity
-              onPress={() => deletePayment(item._id)}
-              style={{
-                marginTop: 10,
-                backgroundColor: "#2A2A33",
-                paddingVertical: 12,
-                borderRadius: 12,
-              }}
-            >
-              <Text style={{ color: "#F5F1E8", textAlign: "center", fontWeight: "600" }}>
-                Delete
+            <View style={{ marginTop: 12, paddingTop: 12, borderTopWidth: 1, borderTopColor: "#23232B" }}>
+              <Text style={{ color: "#A1A1AA", fontSize: 14 }}>
+                Method: <Text style={{ color: "#F5F1E8" }}>{item.paymentMethod}</Text>
               </Text>
-            </TouchableOpacity>
+              
+              {item.referenceNumber && (
+                <Text style={{ color: "#A1A1AA", fontSize: 14, marginTop: 4 }}>
+                  Ref No: <Text style={{ color: "#C6A96B", fontWeight: "600" }}>{item.referenceNumber}</Text>
+                </Text>
+              )}
+            </View>
+
+            {item.receiptImage ? (
+              <View style={{ marginTop: 16 }}>
+                <Text style={{ color: "#F5F1E8", marginBottom: 8, fontSize: 14, fontWeight: "600" }}>
+                  Payment Receipt Slip:
+                </Text>
+                <Image 
+                  source={{ uri: `${API_URL}${item.receiptImage}` }} 
+                  style={{ width: "100%", height: 220, borderRadius: 12, backgroundColor: "#0B0B0F" }} 
+                  resizeMode="contain" 
+                />
+              </View>
+            ) : null}
+
+            {item.status === "Pending" && item.paymentMethod === "Bank Transfer" && (
+              <View style={{ marginTop: 16 }}>
+                <Text style={{ color: "#A1A1AA", marginBottom: 8, fontSize: 13 }}>
+                  Verify the slip and enter the reference number:
+                </Text>
+                <TextInput
+                  placeholder="Enter Reference Number"
+                  placeholderTextColor="#7C7C85"
+                  value={refNumbers[item._id] || ""}
+                  onChangeText={(val) => setRefNumbers({...refNumbers, [item._id]: val})}
+                  style={{ 
+                    backgroundColor: "#1D1D24", 
+                    color: "#F5F1E8", 
+                    padding: 14, 
+                    borderRadius: 12, 
+                    borderWidth: 1, 
+                    borderColor: "#23232B" 
+                  }}
+                />
+              </View>
+            )}
+
+            <View style={{ flexDirection: "row", marginTop: 20, gap: 10 }}>
+              {item.status !== "Paid" && (
+                <TouchableOpacity
+                  onPress={() => updateStatus(item._id, "Paid")}
+                  style={{
+                    flex: 1,
+                    backgroundColor: "#C6A96B",
+                    paddingVertical: 12,
+                    borderRadius: 12,
+                  }}
+                >
+                  <Text style={{ color: "#0B0B0F", textAlign: "center", fontWeight: "600" }}>
+                    Confirm Payment
+                  </Text>
+                </TouchableOpacity>
+              )}
+
+              {item.status === "Pending" && (
+                <TouchableOpacity
+                  onPress={() => updateStatus(item._id, "Failed")}
+                  style={{
+                    flex: 1,
+                    backgroundColor: "#7A1F1F",
+                    paddingVertical: 12,
+                    borderRadius: 12,
+                  }}
+                >
+                  <Text style={{ color: "#F5F1E8", textAlign: "center", fontWeight: "600" }}>
+                    Reject
+                  </Text>
+                </TouchableOpacity>
+              )}
+            </View>
           </View>
         )}
       />
