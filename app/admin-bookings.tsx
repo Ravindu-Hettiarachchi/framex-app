@@ -203,13 +203,45 @@ export default function AdminBookingsScreen() {
                 </View>
               ) : null}
 
+              {/* Payment Status Badge */}
+              <View style={{ 
+                flexDirection: "row", alignItems: "center", gap: 6, marginTop: 12,
+                backgroundColor: item.isPaid ? "#152D1A" : "#2D1515",
+                paddingHorizontal: 12, paddingVertical: 6, borderRadius: 10,
+                alignSelf: "flex-start", borderWidth: 1, borderColor: item.isPaid ? "#22C55E40" : "#EF444440"
+              }}>
+                <Ionicons 
+                  name={item.isPaid ? "card-outline" : "alert-circle-outline"} 
+                  size={16} 
+                  color={item.isPaid ? "#22C55E" : "#EF4444"} 
+                />
+                <Text style={{ 
+                  color: item.isPaid ? "#22C55E" : "#EF4444", 
+                  fontSize: 13, fontWeight: "700" 
+                }}>
+                  {item.isPaid ? "PAYMENT ATTACHED" : "NO PAYMENT FOUND"}
+                </Text>
+              </View>
+
               {/* Approve / Reject buttons */}
               <View style={{ flexDirection: "row", marginTop: 16, gap: 10 }}>
                 <TouchableOpacity
-                  onPress={() => updateStatus(item._id, "Approved")}
-                  style={{ flex: 1, backgroundColor: "#C6A96B", paddingVertical: 12, borderRadius: 12 }}
+                  onPress={() => {
+                    if (!item.isPaid) {
+                      setError("Cannot approve a booking without payment.");
+                      return;
+                    }
+                    updateStatus(item._id, "Approved");
+                  }}
+                  style={{ 
+                    flex: 1, 
+                    backgroundColor: item.isPaid ? "#C6A96B" : "#2A2A33", 
+                    paddingVertical: 12, 
+                    borderRadius: 12,
+                    opacity: item.isPaid ? 1 : 0.6
+                  }}
                 >
-                  <Text style={{ color: "#0B0B0F", textAlign: "center", fontWeight: "700" }}>
+                  <Text style={{ color: item.isPaid ? "#0B0B0F" : "#7C7C85", textAlign: "center", fontWeight: "700" }}>
                     Approve
                   </Text>
                 </TouchableOpacity>
