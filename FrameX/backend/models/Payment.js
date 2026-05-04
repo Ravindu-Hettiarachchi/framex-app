@@ -21,6 +21,12 @@ const paymentSchema = new mongoose.Schema(
       enum: ["Pending", "Paid", "Failed"],
       default: "Pending",
     },
+    receiptImage: {
+      type: String,
+    },
+    referenceNumber: {
+      type: String,
+    },
   },
   {
     timestamps: true,

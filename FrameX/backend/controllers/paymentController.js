@@ -10,11 +10,14 @@ const createPayment = async (req, res) => {
       });
     }
 
+    const receiptImage = req.file ? `/uploads/${req.file.filename}` : "";
+
     const payment = await Payment.create({
       bookingId,
       amount,
       paymentMethod: paymentMethod || "Cash",
       status: status || "Pending",
+      receiptImage: receiptImage,
     });
 
     res.status(201).json({
@@ -117,15 +120,20 @@ const getAllPayments = async (req, res) => {
 
 const updatePaymentStatus = async (req, res) => {
   try {
-    const { status } = req.body || {};
+    const { status, referenceNumber } = req.body || {};
 
     if (!status) {
       return res.status(400).json({ message: "Status is required" });
     }
 
+    const updateData = { status };
+    if (referenceNumber) {
+      updateData.referenceNumber = referenceNumber;
+    }
+
     const payment = await Payment.findByIdAndUpdate(
       req.params.id,
-      { status },
+      updateData,
       { new: true, runValidators: true }
     ).populate({
       path: "bookingId",

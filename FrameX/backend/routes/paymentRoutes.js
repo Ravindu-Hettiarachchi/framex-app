@@ -3,13 +3,18 @@ const router = express.Router();
 
 const paymentController = require("../controllers/paymentController");
 const authMiddleware = require("../middleware/authMiddleware");
+const upload = require("../middleware/uploadMiddleware");
 
 // Customer routes
-router.post("/", authMiddleware.protect, paymentController.createPayment);
+router.post(
+  "/",
+  authMiddleware.protect,
+  upload.single("receiptImage"),
+  paymentController.createPayment
+);
 router.get("/", authMiddleware.protect, paymentController.getPayments);
 router.get("/:id", authMiddleware.protect, paymentController.getPaymentById);
 router.put("/:id", authMiddleware.protect, paymentController.updatePayment);
-router.delete("/:id", authMiddleware.protect, paymentController.deletePayment);
 
 // Admin routes
 router.get(
