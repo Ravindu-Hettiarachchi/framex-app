@@ -1,4 +1,4 @@
-import { View, Text, TouchableOpacity, TextInput, Alert, ScrollView, Image } from "react-native";
+import { View, Text, TouchableOpacity, TextInput, Alert, ScrollView, Image, KeyboardAvoidingView, Platform } from "react-native";
 import { useState } from "react";
 import { router, useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
@@ -139,7 +139,7 @@ export default function PaymentScreen() {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: "#0B0B0F", paddingTop: 60 }}>
+    <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={{ flex: 1, backgroundColor: "#0B0B0F", paddingTop: 60 }}>
       {/* HEADER */}
       <View style={{ flexDirection: "row", alignItems: "center", paddingHorizontal: 24, marginBottom: 20 }}>
         <TouchableOpacity onPress={() => router.back()} style={{ marginRight: 16 }}>
@@ -322,6 +322,6 @@ export default function PaymentScreen() {
         </TouchableOpacity>
 
       </ScrollView>
-    </View>
+    </KeyboardAvoidingView>
   );
 }
