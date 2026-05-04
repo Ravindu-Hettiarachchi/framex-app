@@ -31,8 +31,22 @@ export default function PaymentScreen() {
 
   const handlePayment = async () => {
     if (method === "card") {
-      if (!cardNumber || !expiry || !cvv) {
-        Alert.alert("Validation", "Please fill out all card details (Demo).");
+      // Basic Card Validation
+      const cleanCard = cardNumber.replace(/\s/g, "");
+      const cardRegex = /^[0-9]{16}$/;
+      const expiryRegex = /^(0[1-9]|1[0-2])\/?([0-9]{2})$/;
+      const cvvRegex = /^[0-9]{3}$/;
+
+      if (!cardRegex.test(cleanCard)) {
+        Alert.alert("Validation", "Please enter a valid 16-digit card number.");
+        return;
+      }
+      if (!expiryRegex.test(expiry)) {
+        Alert.alert("Validation", "Please enter a valid expiry date (MM/YY).");
+        return;
+      }
+      if (!cvvRegex.test(cvv)) {
+        Alert.alert("Validation", "Please enter a valid 3-digit CVV.");
         return;
       }
     } else {
@@ -69,12 +83,18 @@ export default function PaymentScreen() {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
-          // Note: Don't set 'Content-Type' header when using FormData
         },
         body: formData
       });
 
-      const data = await res.json();
+      const responseText = await res.text();
+      let data;
+      try {
+        data = JSON.parse(responseText);
+      } catch (e) {
+        console.log("Server Error HTML:", responseText);
+        throw new Error(`Server error (${res.status}). Please check if the backend is running correctly.`);
+      }
 
       if (!res.ok) {
         throw new Error(data.message || "Payment failed");
