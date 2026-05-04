@@ -52,8 +52,13 @@ const validate = (
   setErr("");
   if (!name.trim())     { setErr("Please enter your name"); return false; }
   if (!phone.trim())    { setErr("Please enter your phone number"); return false; }
-  if (!/^\d{7,15}$/.test(phone.replace(/[\s+\-()]/g, ""))) {
-    setErr("Enter a valid phone number"); return false;
+  // Strip formatting chars then validate
+  const rawPhone = phone.replace(/[\s\-().]/g, "");
+  // Accept: 07XXXXXXXX (10 digits, SL local) OR +94XXXXXXXXX (international)
+  const slLocal = /^07\d{8}$/.test(rawPhone);
+  const intl    = /^\+94\d{9}$/.test(rawPhone) || /^94\d{9}$/.test(rawPhone);
+  if (!slLocal && !intl) {
+    setErr("Enter a valid phone number (e.g. 0771234567 or +94771234567)"); return false;
   }
   if (!location.trim()) { setErr("Please enter shoot location"); return false; }
   if (!date.trim())     { setErr("Please select a date"); return false; }
