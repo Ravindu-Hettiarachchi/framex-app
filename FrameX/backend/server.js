@@ -24,7 +24,10 @@ app.use(cors({
   allowedHeaders: ["Content-Type", "Authorization"],
 }));
 app.use(express.json());
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+app.use("/uploads", (req, res, next) => {
+  console.log("Image Request:", req.url);
+  next();
+}, express.static(path.join(__dirname, "uploads")));
 
 app.get("/", (req, res) => {
   res.send("FrameX API is running...");
