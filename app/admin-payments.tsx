@@ -8,6 +8,7 @@ import { Ionicons } from "@expo/vector-icons";
 export default function AdminPaymentsScreen() {
   const [payments, setPayments] = useState<any[]>([]);
   const [refNumbers, setRefNumbers] = useState<{[key: string]: string}>({});
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
 
   const fetchPayments = async () => {
     try {
@@ -31,6 +32,17 @@ export default function AdminPaymentsScreen() {
       console.log(error);
       Alert.alert("Error", "Could not fetch payments");
     }
+  };
+
+  const toggleSort = () => {
+    const newOrder = sortOrder === "asc" ? "desc" : "asc";
+    setSortOrder(newOrder);
+    const sorted = [...payments].sort((a: any, b: any) => {
+      const dateA = new Date(a.createdAt).getTime();
+      const dateB = new Date(b.createdAt).getTime();
+      return newOrder === "asc" ? dateA - dateB : dateB - dateA;
+    });
+    setPayments(sorted);
   };
 
   const updateStatus = async (id: string, status: string) => {
