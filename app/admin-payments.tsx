@@ -82,10 +82,27 @@ export default function AdminPaymentsScreen() {
             color: "#F5F1E8",
             fontSize: 28,
             fontWeight: "700",
+            flex: 1,
           }}
         >
           Manage Payments
         </Text>
+        <TouchableOpacity 
+          onPress={toggleSort}
+          style={{ 
+            backgroundColor: "#1D1D24", 
+            padding: 10, 
+            borderRadius: 12,
+            borderWidth: 1,
+            borderColor: "#23232B"
+          }}
+        >
+          <Ionicons 
+            name={sortOrder === "asc" ? "arrow-up" : "arrow-down"} 
+            size={20} 
+            color="#C6A96B" 
+          />
+        </TouchableOpacity>
       </View>
 
       <FlatList

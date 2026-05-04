@@ -42,31 +42,45 @@ export default function AdminBookingsScreen() {
   const [error, setError]       = useState("");
   const [toast, setToast]       = useState("");
   const [confirmId, setConfirmId] = useState<string | null>(null);
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
 
   // ── Fetch ──────────────────────────────────────────────────────────────────
   const fetchBookings = async () => {
     setError("");
     try {
       const token = await AsyncStorage.getItem("token");
-      console.log("Fetching admin bookings from:", `${API_URL}/api/bookings/admin/all`);
-
       const res  = await fetch(`${API_URL}/api/bookings/admin/all`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
-      console.log("Admin bookings response:", res.status, Array.isArray(data) ? `${data.length} items` : data);
 
       if (!res.ok) {
         setError(data.message || `Error ${res.status}: Failed to fetch bookings`);
         return;
       }
-      setBookings(Array.isArray(data) ? data : []);
+      
+      const sorted = (Array.isArray(data) ? data : []).sort((a: any, b: any) => {
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      });
+      setBookings(sorted);
+      setSortOrder("desc");
     } catch (e: any) {
       console.log("fetchBookings error:", e);
       setError("Network error — could not reach server");
     } finally {
       setLoading(false);
     }
+  };
+
+  const toggleSort = () => {
+    const newOrder = sortOrder === "asc" ? "desc" : "asc";
+    setSortOrder(newOrder);
+    const sorted = [...bookings].sort((a: any, b: any) => {
+      const dateA = new Date(a.createdAt).getTime();
+      const dateB = new Date(b.createdAt).getTime();
+      return newOrder === "asc" ? dateA - dateB : dateB - dateA;
+    });
+    setBookings(sorted);
   };
 
   // ── Update status ──────────────────────────────────────────────────────────
