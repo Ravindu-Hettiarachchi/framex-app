@@ -171,6 +171,7 @@ export default function BookingsScreen() {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [user, setUser]         = useState<any>(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
 
   // ── Create form
   const [cDate, setCDate]         = useState("");
@@ -197,8 +198,25 @@ export default function BookingsScreen() {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
-      if (res.ok) setBookings(data);
+      if (res.ok) {
+        const sorted = (data || []).sort((a: any, b: any) => {
+          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+        });
+        setBookings(sorted);
+        setSortOrder("desc");
+      }
     } catch (e) { console.log("fetchBookings error:", e); }
+  };
+
+  const toggleSort = () => {
+    const newOrder = sortOrder === "asc" ? "desc" : "asc";
+    setSortOrder(newOrder);
+    const sorted = [...bookings].sort((a: any, b: any) => {
+      const dateA = new Date(a.createdAt).getTime();
+      const dateB = new Date(b.createdAt).getTime();
+      return newOrder === "asc" ? dateA - dateB : dateB - dateA;
+    });
+    setBookings(sorted);
   };
 
   useEffect(() => {
@@ -311,9 +329,27 @@ export default function BookingsScreen() {
       style={{ flex: 1, backgroundColor: "#0B0B0F" }}
       contentContainerStyle={{ paddingTop: 80, paddingHorizontal: 24, paddingBottom: 60 }}
     >
-      <Text style={{ color: "#F5F1E8", fontSize: 28, fontWeight: "700", marginBottom: 4 }}>
-        My Bookings
-      </Text>
+      <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
+        <Text style={{ color: "#F5F1E8", fontSize: 28, fontWeight: "700" }}>
+          My Bookings
+        </Text>
+        <TouchableOpacity 
+          onPress={toggleSort}
+          style={{ 
+            backgroundColor: "#15151B", 
+            padding: 10, 
+            borderRadius: 12,
+            borderWidth: 1,
+            borderColor: "#23232B"
+          }}
+        >
+          <Ionicons 
+            name={sortOrder === "asc" ? "arrow-up" : "arrow-down"} 
+            size={20} 
+            color="#C6A96B" 
+          />
+        </TouchableOpacity>
+      </View>
       <Text style={{ color: "#A1A1AA", fontSize: 14, marginBottom: 28 }}>
         Manage your reserved photography sessions.
       </Text>
