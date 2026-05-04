@@ -93,7 +93,6 @@ export default function AdminBookingsScreen() {
         body: JSON.stringify({ status }),
       });
       const data = await res.json();
-      console.log("updateStatus response:", res.status, data);
 
       if (!res.ok) { setError(data.message || "Update failed"); return; }
 
@@ -130,7 +129,6 @@ export default function AdminBookingsScreen() {
 
   useEffect(() => { fetchBookings(); }, []);
 
-  // ── Render ─────────────────────────────────────────────────────────────────
   return (
     <View style={{ flex: 1, backgroundColor: "#0B0B0F", paddingTop: 60 }}>
       {/* Header */}
@@ -138,20 +136,20 @@ export default function AdminBookingsScreen() {
         <TouchableOpacity onPress={() => router.back()} style={{ marginRight: 16 }}>
           <Ionicons name="arrow-back" size={28} color="#F5F1E8" />
         </TouchableOpacity>
-        <Text style={{ color: "#F5F1E8", fontSize: 28, fontWeight: "700" }}>
+        <Text style={{ color: "#F5F1E8", fontSize: 28, fontWeight: "700", flex: 1 }}>
           Manage Bookings
         </Text>
-        <TouchableOpacity onPress={fetchBookings} style={{ marginLeft: "auto" }}>
+        <TouchableOpacity onPress={toggleSort} style={{ marginRight: 15 }}>
+          <Ionicons name={sortOrder === "asc" ? "arrow-up" : "arrow-down"} size={24} color="#C6A96B" />
+        </TouchableOpacity>
+        <TouchableOpacity onPress={fetchBookings}>
           <Ionicons name="refresh-outline" size={24} color="#C6A96B" />
         </TouchableOpacity>
       </View>
 
-      {/* Toast success */}
       {toast ? <Banner text={toast} type="success" /> : null}
-      {/* Error */}
       {error ? <Banner text={error} type="error" /> : null}
 
-      {/* Loading */}
       {loading ? (
         <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
           <ActivityIndicator size="large" color="#C6A96B" />
@@ -217,13 +215,16 @@ export default function AdminBookingsScreen() {
                 </View>
               ) : null}
 
-              {/* Payment Status Badge */}
-              <View style={{ 
-                flexDirection: "row", alignItems: "center", gap: 6, marginTop: 12,
-                backgroundColor: item.isPaid ? "#152D1A" : "#2D1515",
-                paddingHorizontal: 12, paddingVertical: 6, borderRadius: 10,
-                alignSelf: "flex-start", borderWidth: 1, borderColor: item.isPaid ? "#22C55E40" : "#EF444440"
-              }}>
+              {/* Payment Status Badge (Click to go to Payments) */}
+              <TouchableOpacity 
+                onPress={() => router.push("/admin-payments")}
+                style={{ 
+                  flexDirection: "row", alignItems: "center", gap: 6, marginTop: 12,
+                  backgroundColor: item.isPaid ? "#152D1A" : "#2D1515",
+                  paddingHorizontal: 12, paddingVertical: 10, borderRadius: 10,
+                  alignSelf: "flex-start", borderWidth: 1, borderColor: item.isPaid ? "#22C55E40" : "#EF444440"
+                }}
+              >
                 <Ionicons 
                   name={item.isPaid ? "card-outline" : "alert-circle-outline"} 
                   size={16} 
@@ -233,22 +234,29 @@ export default function AdminBookingsScreen() {
                   color: item.isPaid ? "#22C55E" : "#EF4444", 
                   fontSize: 13, fontWeight: "700" 
                 }}>
-                  {item.isPaid ? "PAYMENT ATTACHED" : "NO PAYMENT FOUND"}
+                  {item.isPaid ? "PAYMENT ATTACHED (VIEW SLIP)" : "NO PAYMENT FOUND"}
                 </Text>
-              </View>
+              </TouchableOpacity>
 
               {/* Approve / Reject buttons */}
               <View style={{ flexDirection: "row", marginTop: 16, gap: 10 }}>
                 <TouchableOpacity
-                  onPress={() => updateStatus(item._id, "Approved")}
+                  onPress={() => {
+                    if (!item.isPaid) {
+                      setError("Please verify the payment first.");
+                      return;
+                    }
+                    updateStatus(item._id, "Approved");
+                  }}
                   style={{ 
                     flex: 1, 
-                    backgroundColor: "#C6A96B", 
+                    backgroundColor: item.isPaid ? "#C6A96B" : "#2A2A33", 
                     paddingVertical: 12, 
-                    borderRadius: 12 
+                    borderRadius: 12,
+                    opacity: item.isPaid ? 1 : 0.6
                   }}
                 >
-                  <Text style={{ color: "#0B0B0F", textAlign: "center", fontWeight: "700" }}>
+                  <Text style={{ color: item.isPaid ? "#0B0B0F" : "#7C7C85", textAlign: "center", fontWeight: "700" }}>
                     Approve
                   </Text>
                 </TouchableOpacity>
