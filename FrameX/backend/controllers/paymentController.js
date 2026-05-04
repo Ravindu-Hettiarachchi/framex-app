@@ -20,6 +20,13 @@ const createPayment = async (req, res) => {
       receiptImage: receiptImage,
     });
 
+    // Update booking payment status
+    const Booking = require("../models/Booking");
+    await Booking.findByIdAndUpdate(bookingId, {
+      isPaid: true,
+      paymentId: payment._id,
+    });
+
     res.status(201).json({
       message: "Payment created successfully",
       payment,

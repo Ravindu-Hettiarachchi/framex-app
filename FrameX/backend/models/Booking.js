@@ -25,6 +25,14 @@ const bookingSchema = new mongoose.Schema(
       enum: ["Pending", "Approved", "Rejected"],
       default: "Pending",
     },
+    isPaid: {
+      type: Boolean,
+      default: false,
+    },
+    paymentId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Payment",
+    },
   },
   {
     timestamps: true,
