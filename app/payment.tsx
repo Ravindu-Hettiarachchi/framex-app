@@ -68,14 +68,14 @@ export default function PaymentScreen() {
       formData.append("status", method === "card" ? "Paid" : "Pending");
 
       if (receipt) {
-        const uriParts = receipt.uri.split('.');
-        const fileType = uriParts[uriParts.length - 1];
+        const mimeType = receipt.mimeType || 'image/jpeg';
+        const fileName = receipt.fileName || `receipt.${receipt.uri.split('.').pop() || 'jpg'}`;
         
         // @ts-ignore
         formData.append("receiptImage", {
           uri: receipt.uri,
-          name: `receipt.${fileType}`,
-          type: `image/${fileType}`,
+          name: fileName,
+          type: mimeType,
         });
       }
 
