@@ -383,7 +383,6 @@ export default function BookingsScreen() {
           {item.status === "Pending" && (
             <View>
               {confirmDeleteId === item._id ? (
-                // Inline confirm on web
                 <View style={{ backgroundColor: "#2D1515", borderRadius: 12, padding: 14,
                   borderWidth: 1, borderColor: "#EF444460", marginTop: 4 }}>
                   <Text style={{ color: "#F5F1E8", fontSize: 14, marginBottom: 12, textAlign: "center" }}>
@@ -422,36 +421,37 @@ export default function BookingsScreen() {
                     <Text style={{ color: "#EF4444", fontWeight: "600", fontSize: 14 }}>Cancel</Text>
                   </TouchableOpacity>
                 </View>
-                
-                {/* Pay Now Button */}
-                {!item.isPaid && (
-                  <TouchableOpacity
-                    onPress={() => router.push({
-                      pathname: "/payment",
-                      params: {
-                        bookingId: item._id,
-                        amount: String(item.packageId?.price || 0),
-                        packageTitle: item.packageId?.title || "Package"
-                      }
-                    })}
-                    style={{ 
-                      marginTop: 10, 
-                      backgroundColor: "#C6A96B", 
-                      paddingVertical: 12, 
-                      borderRadius: 12,
-                      flexDirection: "row",
-                      justifyContent: "center",
-                      alignItems: "center",
-                      gap: 8
-                    }}
-                  >
-                    <Ionicons name="card-outline" size={18} color="#0B0B0F" />
-                    <Text style={{ color: "#0B0B0F", fontWeight: "700", fontSize: 15 }}>
-                      Pay Now
-                    </Text>
-                  </TouchableOpacity>
-                )}
-              </View>
+              )}
+            </View>
+          )}
+
+          {/* Pay Now Button (Visible for all unpaid bookings) */}
+          {!item.isPaid && (
+            <TouchableOpacity
+              onPress={() => router.push({
+                pathname: "/payment",
+                params: {
+                  bookingId: item._id,
+                  amount: String(item.packageId?.price || 0),
+                  packageTitle: item.packageId?.title || "Package"
+                }
+              })}
+              style={{ 
+                marginTop: 10, 
+                backgroundColor: "#C6A96B", 
+                paddingVertical: 12, 
+                borderRadius: 12,
+                flexDirection: "row",
+                justifyContent: "center",
+                alignItems: "center",
+                gap: 8
+              }}
+            >
+              <Ionicons name="card-outline" size={18} color="#0B0B0F" />
+              <Text style={{ color: "#0B0B0F", fontWeight: "700", fontSize: 15 }}>
+                Pay Now
+              </Text>
+            </TouchableOpacity>
           )}
         </View>
       ))}
