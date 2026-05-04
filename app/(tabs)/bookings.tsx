@@ -225,14 +225,24 @@ export default function BookingsScreen() {
       console.log("Create response:", data);
       if (!res.ok) { setCErr(data.message || "Failed"); return; }
 
-      if (Platform.OS !== "web") Alert.alert("Success", "Booking Created");
-      setCSuccess("Booking Created! ✓");
+      if (Platform.OS !== "web") Alert.alert("Success", "Booking created. Please complete payment.");
+      setCSuccess("Booking Created! Redirecting to payment...");
+      const bId = data.booking._id;
       setCDate(""); setCTime("");
       await fetchBookings();
+      
       setTimeout(() => { 
         setCSuccess(""); 
-        router.setParams({ packageId: "", title: "", price: "" }); 
-      }, 2000);
+        router.setParams({ packageId: "", title: "", price: "" });
+        router.push({
+          pathname: "/payment",
+          params: {
+            bookingId: bId,
+            amount: incomingPrice || "0",
+            packageTitle: incomingTitle || "Package"
+          }
+        });
+      }, 1500);
     } catch (e) { setCErr("Network error. Please try again."); }
     finally { setCBusy(false); }
   };
@@ -327,8 +337,8 @@ export default function BookingsScreen() {
           <DateTimeForm date={cDate} setDate={setCDate} time={cTime} setTime={setCTime} setErr={setCErr} />
 
           <TouchableOpacity onPress={handleCreate} disabled={cBusy} style={[btn, { marginTop: 6 }]}>
-            <Ionicons name="checkmark-circle-outline" size={20} color="#0B0B0F" />
-            <Text style={btnTxt}>{cBusy ? "Confirming..." : "Confirm Booking"}</Text>
+            <Ionicons name="card-outline" size={20} color="#0B0B0F" />
+            <Text style={btnTxt}>{cBusy ? "Processing..." : "Proceed to Payment"}</Text>
           </TouchableOpacity>
         </View>
       )}
