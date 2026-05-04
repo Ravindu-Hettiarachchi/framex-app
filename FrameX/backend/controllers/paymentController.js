@@ -3,6 +3,7 @@ const Payment = require("../models/Payment");
 const createPayment = async (req, res) => {
   try {
     const { bookingId, amount, paymentMethod, status } = req.body || {};
+    console.log("Create Payment - File received:", req.file ? req.file.filename : "No file");
 
     if (!bookingId || !amount) {
       return res.status(400).json({
