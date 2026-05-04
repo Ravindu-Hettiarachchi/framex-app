@@ -1,4 +1,4 @@
-import { View, Text, FlatList, TouchableOpacity, Alert, Image, TextInput } from "react-native";
+import { View, Text, FlatList, TouchableOpacity, Alert, Image, TextInput, Modal } from "react-native";
 import { useEffect, useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { API_URL } from "../constants/Api";
@@ -9,6 +9,7 @@ export default function AdminPaymentsScreen() {
   const [payments, setPayments] = useState<any[]>([]);
   const [refNumbers, setRefNumbers] = useState<{[key: string]: string}>({});
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   const fetchPayments = async () => {
     try {
@@ -170,28 +171,23 @@ export default function AdminPaymentsScreen() {
                     Payment Receipt Slip:
                   </Text>
                   <TouchableOpacity 
-                    onPress={() => {
-                      const fullUrl = `${API_URL}${item.receiptImage.startsWith('/') ? '' : '/'}${item.receiptImage}`;
-                      console.log("Opening Receipt URL:", fullUrl);
-                      // Use Linking to open in browser if needed
-                      import("react-native").then(rn => rn.Linking.openURL(fullUrl));
-                    }}
+                    onPress={() => setSelectedImage(`${API_URL}${item.receiptImage.startsWith('/') ? '' : '/'}${item.receiptImage}`)}
                     style={{ backgroundColor: "#1D1D24", paddingHorizontal: 10, paddingVertical: 4, borderRadius: 6, borderWidth: 1, borderColor: "#C6A96B40" }}
                   >
-                    <Text style={{ color: "#C6A96B", fontSize: 11, fontWeight: "600" }}>OPEN IN BROWSER</Text>
+                    <Text style={{ color: "#C6A96B", fontSize: 11, fontWeight: "600" }}>FULL PREVIEW</Text>
                   </TouchableOpacity>
                 </View>
                 
-                <View style={{ width: "100%", height: 250, borderRadius: 12, backgroundColor: "#0B0B0F", overflow: "hidden", borderWidth: 1, borderColor: "#23232B" }}>
+                <TouchableOpacity 
+                  onPress={() => setSelectedImage(`${API_URL}${item.receiptImage.startsWith('/') ? '' : '/'}${item.receiptImage}`)}
+                  style={{ width: "100%", height: 250, borderRadius: 12, backgroundColor: "#0B0B0F", overflow: "hidden", borderWidth: 1, borderColor: "#23232B" }}
+                >
                   <Image 
                     source={{ uri: `${API_URL}${item.receiptImage.startsWith('/') ? '' : '/'}${item.receiptImage}` }} 
                     style={{ width: "100%", height: "100%" }} 
                     resizeMode="contain"
-                    onLoadStart={() => console.log("Loading image:", `${API_URL}${item.receiptImage}`)}
-                    onLoad={() => console.log("Image loaded successfully")}
-                    onError={(e) => console.log("Image load error:", e.nativeEvent.error)}
                   />
-                </View>
+                </TouchableOpacity>
               </View>
             ) : null}
 
@@ -253,6 +249,26 @@ export default function AdminPaymentsScreen() {
           </View>
         )}
       />
+
+      {/* Full Screen Image Modal */}
+      <Modal visible={!!selectedImage} transparent animationType="fade">
+        <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.95)", justifyContent: "center", alignItems: "center" }}>
+          <TouchableOpacity 
+            onPress={() => setSelectedImage(null)}
+            style={{ position: "absolute", top: 50, right: 24, zIndex: 10, backgroundColor: "rgba(0,0,0,0.5)", padding: 8, borderRadius: 20 }}
+          >
+            <Ionicons name="close" size={30} color="#F5F1E8" />
+          </TouchableOpacity>
+          
+          {selectedImage && (
+            <Image 
+              source={{ uri: selectedImage }} 
+              style={{ width: "100%", height: "80%" }} 
+              resizeMode="contain" 
+            />
+          )}
+        </View>
+      </Modal>
     </View>
   );
 }
