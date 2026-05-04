@@ -165,19 +165,33 @@ export default function AdminPaymentsScreen() {
 
             {item.receiptImage ? (
               <View style={{ marginTop: 16 }}>
-                <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+                <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
                   <Text style={{ color: "#F5F1E8", fontSize: 14, fontWeight: "600" }}>
                     Payment Receipt Slip:
                   </Text>
-                  <View style={{ backgroundColor: "#2A2211", paddingHorizontal: 8, paddingVertical: 2, borderRadius: 6 }}>
-                    <Text style={{ color: "#C6A96B", fontSize: 10, fontWeight: "700" }}>PENDING REVIEW</Text>
-                  </View>
+                  <TouchableOpacity 
+                    onPress={() => {
+                      const fullUrl = `${API_URL}${item.receiptImage.startsWith('/') ? '' : '/'}${item.receiptImage}`;
+                      console.log("Opening Receipt URL:", fullUrl);
+                      // Use Linking to open in browser if needed
+                      import("react-native").then(rn => rn.Linking.openURL(fullUrl));
+                    }}
+                    style={{ backgroundColor: "#1D1D24", paddingHorizontal: 10, paddingVertical: 4, borderRadius: 6, borderWidth: 1, borderColor: "#C6A96B40" }}
+                  >
+                    <Text style={{ color: "#C6A96B", fontSize: 11, fontWeight: "600" }}>OPEN IN BROWSER</Text>
+                  </TouchableOpacity>
                 </View>
-                <Image 
-                  source={{ uri: `${API_URL}${item.receiptImage.startsWith('/') ? '' : '/'}${item.receiptImage}` }} 
-                  style={{ width: "100%", height: 250, borderRadius: 12, backgroundColor: "#0B0B0F", borderWidth: 1, borderColor: "#23232B" }} 
-                  resizeMode="contain" 
-                />
+                
+                <View style={{ width: "100%", height: 250, borderRadius: 12, backgroundColor: "#0B0B0F", overflow: "hidden", borderWidth: 1, borderColor: "#23232B" }}>
+                  <Image 
+                    source={{ uri: `${API_URL}${item.receiptImage.startsWith('/') ? '' : '/'}${item.receiptImage}` }} 
+                    style={{ width: "100%", height: "100%" }} 
+                    resizeMode="contain"
+                    onLoadStart={() => console.log("Loading image:", `${API_URL}${item.receiptImage}`)}
+                    onLoad={() => console.log("Image loaded successfully")}
+                    onError={(e) => console.log("Image load error:", e.nativeEvent.error)}
+                  />
+                </View>
               </View>
             ) : null}
 
